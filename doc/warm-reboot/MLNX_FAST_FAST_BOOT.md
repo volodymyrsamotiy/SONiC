@@ -91,6 +91,10 @@ The syncd daemon should handle ```-t warm``` option on start differently for Mel
 Syncd should NOT perform WARM start logic related to 'init/temp' view.
 Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK in FFB way.
 
+## 2.3 syncd_init_common.sh changes
+
+The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and pass option ```-t warm``` to syncd start options.
+
 ## 2.2 Shutdown flow
 - User issues Warm reboot CLI:
   - If Mellanox platform then invoke ```mlnx-ffb.sh```
@@ -105,15 +109,20 @@ Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK
   - Dump ARP/FDB entries from APP DB - existing step in FB
   - Mark reboot cause file as MLNX FFB - existing step in FB (<b>Q:</b> I don't think this file was ever used)
   - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
-    (```WARM_RESTART_TABLE|bgp```, ```WARM_RESTART_TABLE|teamd```).
+    (```WARM_RESTART_TABLE|bgp``` and ```WARM_RESTART_TABLE|teamd```).
+  - stop bgp and teamd services via systemctl
     - According to system level WB design doc bgp will enable GR, teamd - just kill
-  - stop other contiainers in non warm way.
-  - kexec
+  - execute ```docker kill``` on every other container
+  - BOOT_OPTIONS += 'fast-fast-reboot' (instead of 'fast-reboot' in FB case)
+  - kexec $BOOT_OPTIONS
 
 ## 2.3 Startup flow
 Similar to fast-reboot:
   - Start services
-    - syncd, swss started normaly in non warm way, except syncd started with ```-t warm```
+    - swss started normaly in non warm way
+    - syncd:
+      - ```if 'fast-fast-reboot' in $(cat /proc/cmdline); then```
+        - started with with ```-t warm``` ( But syncd will not do any WB logic, only passes SAI_WARM_BOOT key to SAI )
     - bgp, teamd start in warm way
   - O/A starts configuring HW
   - When configuration is done:
@@ -122,14 +131,16 @@ Similar to fast-reboot:
 
 # Open issues
 
-1. <b> When to execute ISSU end? </b>
+## <b> When to execute ISSU end? </b>
 
 What configuration is enough to call ISSU end?
 <p>When is configuration done to call ISSU end? There is no good way to understand configuration from config_db was applied on HW.
 <p>Also there is no good way to understand that all BGP routes were applied on HW.
 <p>The possible W/A can include a script with timer started in syncd docker that after $TIMEOUT sec will call ISSU end
 
-2. <b> How to prevent port_config.ini change? </b>
 
-User should not modify port_config.ini or config_db.json port mapping related config in ISSU enabled mode.
-<p>What can be the way to prevent user from doing that?
+## <b> What would be the DP downtime? </b>
+
+During the configure phase the DP will be disrupted.
+It takes time for BGP routes to be advertised by a VM peer and inserted in HW.
+So the downtime will depend on how quickly routes are received by BGP.
