@@ -148,3 +148,14 @@ What configuration is enough to call ISSU end?
 During the configure phase the DP will be disrupted.
 It takes time for BGP routes to be advertised by a VM peer and inserted in HW.
 So the downtime will depend on how quickly routes are received by BGP.
+
+# Approach 2
+
+On WB O/A will perform warm restore and sync up and then send APPLY_VIEW notification to syncd
+(https://github.com/Azure/SONiC/blob/master/doc/warm-reboot/SONiC_Warmboot.md#the-existing-syncd-initapply-view-framework)
+
+Instead of getting the delta between temp and current views we could apply temp view on ASIC to restore its state.
+
+It could solve two issues:
+  - We have exact moment of time when ISSU end can be called
+  - This will insert all routes in ASIC as before shutdown, so we will not wait untill BGP routes are advertised
