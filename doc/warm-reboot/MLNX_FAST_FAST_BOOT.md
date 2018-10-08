@@ -113,7 +113,7 @@ Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK
 ## 2.3 Startup flow
 Similar to fast-reboot:
   - Start services
-    - syncd, swss started normaly in non warm way
+    - syncd, swss started normaly in non warm way, except syncd started with ```-t warm```
     - bgp, teamd start in warm way
   - O/A starts configuring HW
   - When configuration is done:
