@@ -112,10 +112,11 @@ Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK
 
 ## 2.3 Startup flow
 Similar to fast-reboot:
-  - syncd, swss started normaly in non warm way
-  - bgp, teamd start in warm way
+  - Start services
+    - syncd, swss started normaly in non warm way
+    - bgp, teamd start in warm way
   - O/A starts configuring HW
-  - When configuration is done (or we think it is done):
+  - When configuration is done:
     - Execute ISSU end script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script  (```sx_api_issu_end_set()```)
   - END
 
