@@ -103,7 +103,7 @@ The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and p
 ### 2.2.1 Mellanox fast fast reboot flow 
 #### ```mlnx-ffb.sh```
   - MLNX specific flow:
-    - Check if upgrade to new SDK is supported with FFB (```sx_api_issu_start_set()``` to check), if not - return error
+    - Check if FFB is supported via ```show platform mellanox issu status```, if not - return error
     - Burn new FW if new FW is available in next boot SONiC image
     - Execute ISSU start script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script (```sx_api_issu_start_set()```)
   - Dump ARP/FDB entries from APP DB - existing step in FB
