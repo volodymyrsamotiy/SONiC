@@ -34,9 +34,6 @@ MLNX FFB is an implementation of system level Warm boot in SONiC for Mellanox pl
 SAI XML profile exposes a new node that indicates wheter ISSU mode is enabled:
 SAI will start SDK in ```boot_mode=ISSU_ENABLE``` if ISSU enabled or SAI will start SDK in ```boot_mode=NORMAL``` if ISSU disabled.
 
-SAI XML profile also contains initial port mapping/split, speed, etc. configuration that SAI applies to SDK.
-In ISSU enabled mode port mapping/split configuration defined in SAI XML should match the port configuration in port_config.ini
-
 ### SYNCD
 Same as for regular FB
 
@@ -50,14 +47,16 @@ Should invoke warm reboot flow
 Should invoke warm reboot flow
 
 ## Requirements
-* The FFB flow should be issued by Warm reboot CLI command only on Mellanox platforms only on ISSU enabled HWSKUs
-* Warm reboot via MLNX FFB should be available only in system level warm reboot
-* ISSU disabled Mellanox HWSKUs will not support Warm reboot
+* The FFB flow is issued by Warm reboot CLI command on Mellanox platforms
+  * On "ISSU enabled" devices - proceed with FFB flow
+  * On "ISSU disabled" devices - return with appropriate error message
+* Assumed only system level warm reboot via FFB is supported
 * DP downtime should be less than 1 sec
 * CP downtime should be the same as for FB flow - less than 90 sec
 
 ## Limitations
-* ISSU enabled Mellanox HWSKUs cannot change port split configuration
+* It is not advised to changed port split configuration. That will increase the down time to more than 1 sec
+  ( Or it cannot be done? )
 * In ISSU enabled mode only half of resources (RIFs, Routes, ACLs, etc.) are available
 
 
@@ -79,23 +78,23 @@ The script will parse SAI XML profile to get the ISSU status node.
 
 The same approach uses MLNX SDK Sniffer configuration.
 
-<b>Q:</b> Should we also provide ```config platform mellanox issu [enable|disable]``` ?
-
-If we will provide ```config``` we will also do a check for SDK version if ISSU supported. If not return error.
-
-The command will then change SAI XML profile and ask user to restart ```swss``` service.
-
 ## 2.2 syncd changes
 
-The syncd daemon should handle ```-t warm``` option on start differently for Mellanox platform.
-Syncd should NOT perform WARM start logic related to 'init/temp' view.
-Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK in FFB way.
+* The syncd daemon should handle new startup command line flag ```-t fast-fast```.
+* Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK in FFB way.
+* Also, unlike WB, syncd should NOT perform WARM start comparison logic.
+
 
 ## 2.3 syncd_init_common.sh changes
 
-The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and pass option ```-t warm``` to syncd start options.
+The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and pass option ```-t fast-fast``` to syncd start options.
 
 ## 2.2 Shutdown flow
+
+The flow descibed on 'System-wide Warmboot' is not describing the exact flow right now.
+
+Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE```. We will try to rereuse a part of it for BGP/TeamD dockers warm reboot as much as possible but the below flow of ```mlnx-ffb.sh``` will describe all that should be done.
+
 - User issues Warm reboot CLI:
   - If Mellanox platform then invoke ```mlnx-ffb.sh```
   - Else - do regular SONiC warm reboot flow for the rest of platforms
@@ -104,15 +103,17 @@ The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and p
 #### ```mlnx-ffb.sh```
   - MLNX specific flow:
     - Check if FFB is supported via ```show platform mellanox issu status```, if not - return error
-    - Burn new FW if new FW is available in next boot SONiC image
+    - Burn new FW if new FW is available in next boot SONiC image - ```mlnx-fw-upgrade.sh --upgrade```
     - Execute ISSU start script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script (```sx_api_issu_start_set()```)
   - Dump ARP/FDB entries from APP DB - existing step in FB
-  - Mark reboot cause file as MLNX FFB - existing step in FB (<b>Q:</b> I don't think this file was ever used)
+  - Mark reboot cause file - existing step in FB
+    - Similar to FB:
+      ```User issued 'fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
   - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
     (```WARM_RESTART_TABLE|bgp``` and ```WARM_RESTART_TABLE|teamd```).
   - stop bgp and teamd services via systemctl
     - According to system level WB design doc bgp will enable GR, teamd - just kill
-  - execute ```docker kill``` on every other container
+  - execute ```docker kill``` on every other container (swss, syncd, pmon, snmp, lldp)
   - BOOT_OPTIONS += 'fast-fast-reboot' (instead of 'fast-reboot' in FB case)
   - kexec $BOOT_OPTIONS
 
@@ -149,17 +150,21 @@ During the configure phase the DP will be disrupted.
 It takes time for BGP routes to be advertised by a VM peer and inserted in HW.
 So the downtime will depend on how quickly routes are received by BGP.
 
-## <b> How to prevent port_config.ini change? </b>
+## <b> Who should set ```WARM_RESTART_TABLE```? CLI? User? </b>
 
-User should not modify port_config.ini or config_db.json port mapping related config in ISSU enabled mode.
-<p>What can be the way to prevent user from doing that?
+This is not clear from 'System-wide Warmreboot' doc
 
-# Approach 2
+# Approach 2 (more like WB flow)
 
-On WB O/A will perform warm restore and sync up and then send APPLY_VIEW notification to syncd
-(https://github.com/Azure/SONiC/blob/master/doc/warm-reboot/SONiC_Warmboot.md#the-existing-syncd-initapply-view-framework)
+Assume O/A will restart in Warm way. It will restore APP DB (includes routes, neighbors, etc), push config down to syncd. Syncd is in INIT_VIEW mode and will prorcess events from SWSS in different way by marking ASIC DB entries as TEMP_ (no configuration applied to HW). 
 
-Instead of getting the delta between temp and current views we could apply temp view on ASIC to restore its state.
+O/A notifies syncd to do APPLY_VIEW. syncd will do comparison logic between current (the view discovered from current ASIC state) view and temporary view and push the delta config to the HW.
+
+From https://github.com/Azure/SONiC/blob/master/doc/warm-reboot/SONiC_Warmboot.md#the-existing-syncd-initapply-view-framework
+
+"Essentially there will be two views created for warm restart. The current view represents the ASIC state before shutdown, temp view represents the new intended ASIC state after restart."
+
+If we can reuse this approach in different way: e.g apply all configuration that is in temp view instead of computing delta ?
 
 It could solve two issues:
   - We have exact moment of time when ISSU end can be called
