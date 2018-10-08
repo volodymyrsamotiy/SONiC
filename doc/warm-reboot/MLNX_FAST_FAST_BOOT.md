@@ -75,19 +75,11 @@ admin@sonic:~ show platform mellanox issu status
 ISSU ENABLED
 ```
 
-or
-
-```
-admin@sonic:~ show platform mellanox issu status
-ISSU DISABLED
-```
-
 The script will parse SAI XML profile to get the ISSU status node.
 
 The same approach uses MLNX SDK Sniffer configuration.
 
 <b>Q:</b> Should we also provide ```config platform mellanox issu [enable|disable]``` ?
-In this case this config will be overwritten on next reboot.
 
 If we will provide ```config``` we will also do a check for SDK version if ISSU supported. If not return error.
 
@@ -99,30 +91,33 @@ The syncd daemon should handle ```-t warm``` option on start differently for Mel
 Syncd should NOT perform WARM start logic related to 'init/temp' view.
 Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK in FFB way.
 
-## 2.2 Going down path flow
+## 2.2 Shutdown flow
 - User issues Warm reboot CLI:
   - If Mellanox platform then invoke ```mlnx-ffb.sh```
-  - Else - do regular SONiC warm reboot flow
+  - Else - do regular SONiC warm reboot flow for the rest of platforms
   
 ### 2.2.1 Mellanox fast fast reboot flow 
 #### ```mlnx-ffb.sh```
   - MLNX specific flow:
     - Check if upgrade to new SDK is supported with FFB (```sx_api_issu_start_set()``` to check), if not - return error
     - Burn new FW if new FW is available in next boot SONiC image
-    - Execute ISSU start (```sx_api_issu_start_set()```)
-  - Dump ARP/FDB entries from APP DB - this is existing step in FB right now
-  - Mark reboot cause file as MLNX FFB - this is existing step in FB right now (<b>Q:</b> I don't think this file was ever used)
+    - Execute ISSU start script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script (```sx_api_issu_start_set()```)
+  - Dump ARP/FDB entries from APP DB - existing step in FB
+  - Mark reboot cause file as MLNX FFB - existing step in FB (<b>Q:</b> I don't think this file was ever used)
   - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
-  - swss, syncd - just kill
+    (```WARM_RESTART_TABLE|bgp```, ```WARM_RESTART_TABLE|teamd```).
+    - According to system level WB design doc bgp will enable GR, teamd - just kill
+  - stop other contiainers in non warm way.
   - kexec
 
-## 2.3 Going up path flow
+## 2.3 Startup flow
 Similar to fast-reboot:
   - syncd, swss started normaly in non warm way
   - bgp, teamd start in warm way
   - O/A starts configuring HW
   - When configuration is done (or we think it is done):
-    - Execute ISSU end script (```sx_api_issu_end_set()```)
+    - Execute ISSU end script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script  (```sx_api_issu_end_set()```)
+  - END
 
 # Open issues
 
