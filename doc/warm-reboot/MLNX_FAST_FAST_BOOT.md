@@ -149,6 +149,11 @@ During the configure phase the DP will be disrupted.
 It takes time for BGP routes to be advertised by a VM peer and inserted in HW.
 So the downtime will depend on how quickly routes are received by BGP.
 
+## <b> How to prevent port_config.ini change? </b>
+
+User should not modify port_config.ini or config_db.json port mapping related config in ISSU enabled mode.
+<p>What can be the way to prevent user from doing that?
+
 # Approach 2
 
 On WB O/A will perform warm restore and sync up and then send APPLY_VIEW notification to syncd
