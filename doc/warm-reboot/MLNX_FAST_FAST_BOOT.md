@@ -101,17 +101,33 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
 ### 2.2.1 Mellanox fast fast reboot flow 
 #### ```mlnx-ffb.sh```
   - MLNX specific flow:
-    - Check if FFB is supported via ```show platform mellanox issu status```, if not - return error
-    - Burn new FW if new FW is available in next boot SONiC image - ```mlnx-fw-upgrade.sh --upgrade```
-    - Execute ISSU start script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script (```sx_api_issu_start_set()```)
+    - Check if FFB is supported via ```show platform mellanox issu status```, if not - reject the command
+      <br>
+      Example error message:
+      <br>
+        ```Fast fast reboot is not supported on "ISSU disabled device"```
+    - Check if FFB is supported between two SDK version - call the script ```issu.py --check``` inside ```syncd```
+    <br>
+      Example error message:
+      <br>
+        ```Fast fast reboot upgrade to SDK $VERSION_NEW from SDK $VERSION_OLD is not supported```
+      <br>
+      <b>NOTE:</b> This should be a very rare case. We do not plan to break the upgrade, but just to have an additional check here.
+    - Burn new FW if new FW is available in next boot SONiC image: 
+      <br> ```mlnx-fw-upgrade.sh --upgrade```
+    - Execute ISSU start script ```issu.py --start``` inside ```syncd``` container
   - Dump ARP/FDB entries from APP DB - existing step in FB
   - Mark reboot cause file - existing step in FB
     - Similar to FB:
-      ```User issued 'fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
+      ```User issued 'fast-fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
   - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
-    (```WARM_RESTART_TABLE|bgp``` and ```WARM_RESTART_TABLE|teamd```).
+    <br>
+    ```WARM_RESTART_TABLE|bgp```
+    <br>
+    ```WARM_RESTART_TABLE|teamd```
   - stop bgp and teamd services via systemctl
-    - According to system level WB design doc bgp will enable GR, teamd - just kill
+  <br>
+  According to system level WB design doc bgp will enable GR, teamd - just kill
   - execute ```docker kill``` on every other container (swss, syncd, pmon, snmp, lldp)
   - BOOT_OPTIONS += 'fast-fast-reboot' (instead of 'fast-reboot' in FB case)
   - kexec $BOOT_OPTIONS
