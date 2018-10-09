@@ -31,8 +31,8 @@ MLNX FFB is an implementation of system level Warm boot in SONiC for Mellanox pl
 
 ## 1.1 Components
 ### SAI
-SAI XML profile exposes a new node that indicates wheter ISSU mode is enabled:
-SAI will start SDK in ```boot_mode=ISSU_ENABLE``` if ISSU enabled or SAI will start SDK in ```boot_mode=NORMAL``` if ISSU disabled.
+SAI XML profile exposes a new node that indicates wheter SDK starts in "ISSU enabled" mode:
+SAI will start SDK in ```boot_mode=ISSU_ENABLE``` if "ISSU enabled" or SAI will start SDK in ```boot_mode=NORMAL``` if "ISSU disabled".
 
 ### SYNCD
 Same as for regular FB
@@ -56,13 +56,13 @@ Should invoke warm reboot flow
 
 ## Limitations
 * No change in port mapping configuration (correct SDK/HW behaviour is NOT guaranteed otherwise)
-* In ISSU enabled mode only half of resources (RIFs, Routes, ACLs, etc.) are available
+* In "ISSU enabled" mode half of resources (RIFs, Routes, ACLs, etc.) are available
 
 
 # 2 Components changes
 
 ## 2.1 ISSU status CLI command
-In order to get whether SDK was started in ISSU_ENABLED or NORMAL mode we can add new platform show command in ```show``` commands group.
+In order to get whether SDK was started in "ISSU enabled" or normal mode we can add new platform show command in ```show``` commands group.
 
 This command will be used during FFB to check whether we can FFB.
 
