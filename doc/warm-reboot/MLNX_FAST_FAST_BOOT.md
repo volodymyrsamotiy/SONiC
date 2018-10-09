@@ -101,48 +101,66 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
 ### 2.2.1 Mellanox fast fast reboot flow 
 #### ```mlnx-ffb.sh```
   - MLNX specific flow:
+  
     - Check if FFB is supported via ```show platform mellanox issu status```, if not - reject the command
       <br>
       Example error message:
       <br>
         ```Fast fast reboot is not supported on "ISSU disabled device"```
+     
     - Check if FFB is supported between two SDK version - call the script ```issu.py --check``` inside ```syncd```
-    <br>
+      <br>
       Example error message:
       <br>
         ```Fast fast reboot upgrade to SDK $VERSION_NEW from SDK $VERSION_OLD is not supported```
       <br>
-      <b>NOTE:</b> This should be a very rare case. We do not plan to break the upgrade, but just to have an additional check here.
+      
+      <b>NOTE:</b> This should be a very rare case. We do not plan to break the upgrade between versions, but just to have an additional check here.
+      
     - Burn new FW if new FW is available in next boot SONiC image: 
-      <br> ```mlnx-fw-upgrade.sh --upgrade```
+      <br>
+      ```mlnx-fw-upgrade.sh --upgrade```
+ 
     - Execute ISSU start script ```issu.py --start``` inside ```syncd``` container
+    
   - Dump ARP/FDB entries from APP DB - existing step in FB
+  
   - Mark reboot cause file - existing step in FB
     - Similar to FB:
       ```User issued 'fast-fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
+      
   - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
     <br>
     ```WARM_RESTART_TABLE|bgp```
     <br>
     ```WARM_RESTART_TABLE|teamd```
+    
   - stop bgp and teamd services via systemctl
-  <br>
-  According to system level WB design doc bgp will enable GR, teamd - just kill
+    <br>
+    According to system level WB design doc bgp will enable GR, teamd - just kill
+    
   - execute ```docker kill``` on every other container (swss, syncd, pmon, snmp, lldp)
+  
   - BOOT_OPTIONS += 'fast-fast-reboot' (instead of 'fast-reboot' in FB case)
+  
   - kexec $BOOT_OPTIONS
 
 ## 2.3 Startup flow
 Similar to fast-reboot:
   - Start services
     - swss started normaly in non warm way
+    
     - syncd:
       - ```if 'fast-fast-reboot' in $(cat /proc/cmdline); then```
         - started with with ```-t fast-fast```
+        
     - bgp, teamd starts in warm way
+    
   - O/A starts configuring HW
+  
   - When configuration is done:
-    - Execute ISSU end script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script  (```sx_api_issu_end_set()```)
+    - Execute ISSU end script ```issu.py --end``` inside ```syncd```
+    
   - END
 
 ## 2.4 As a W/A for ISSU end call
@@ -153,17 +171,7 @@ A process inside syncd can be started in case of 'fast-fast-boot' that will wait
 
 ## <b> When to execute ISSU end? </b>
 
-What configuration is enough to call ISSU end?
-<p>When is configuration done to call ISSU end? There is no good way to understand configuration from config_db was applied on HW.
-<p>Also there is no good way to understand that all BGP routes were applied on HW.
-<p>The possible W/A can include a script with timer started in syncd docker that after $TIMEOUT sec will call ISSU end
-
-
-## <b> What would be the DP downtime? </b>
-
-During the configure phase the DP will be disrupted.
-It takes time for BGP routes to be advertised by a VM peer and inserted in HW.
-So the downtime will depend on how quickly routes are received by BGP.
+The possible W/A can check when the default route was added?
 
 ## <b> Who should set ```WARM_RESTART_TABLE```? CLI? User? </b>
 
@@ -176,7 +184,7 @@ Since APPL DB will be empty on start, do we need to start bgp docker in warm way
 
 TeamD - unknown
 
-# Approach 2 (more like WB flow)
+# 
 
 Assume O/A will restart in Warm way. It will restore APP DB (includes routes, neighbors, etc), push config down to syncd. Syncd is in INIT_VIEW mode and will prorcess events from SWSS in different way by marking ASIC DB entries as TEMP_ (no configuration applied to HW). 
 
