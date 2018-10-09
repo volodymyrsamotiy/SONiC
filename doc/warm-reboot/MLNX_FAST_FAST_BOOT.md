@@ -55,8 +55,7 @@ Should invoke warm reboot flow
 * CP downtime should be the same as for FB flow - less than 90 sec
 
 ## Limitations
-* It is not advised to changed port split configuration. That will increase the down time to more than 1 sec
-  ( Or it cannot be done? )
+* No change in port mapping configuration (correct SDK/HW behaviour is NOT guaranteed otherwise)
 * In ISSU enabled mode only half of resources (RIFs, Routes, ACLs, etc.) are available
 
 
@@ -87,7 +86,7 @@ The same approach uses MLNX SDK Sniffer configuration.
 
 ## 2.3 syncd_init_common.sh changes
 
-The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' and pass option ```-t fast-fast``` to syncd start options.
+The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' from ```/proc/cmdline``` and pass option ```-t fast-fast``` to syncd start options.
 
 ## 2.2 Shutdown flow
 
@@ -123,8 +122,8 @@ Similar to fast-reboot:
     - swss started normaly in non warm way
     - syncd:
       - ```if 'fast-fast-reboot' in $(cat /proc/cmdline); then```
-        - started with with ```-t warm``` ( But syncd will not do any WB logic, only passes SAI_WARM_BOOT key to SAI )
-    - bgp, teamd start in warm way
+        - started with with ```-t fast-fast```
+    - bgp, teamd starts in warm way
   - O/A starts configuring HW
   - When configuration is done:
     - Execute ISSU end script inside ```syncd``` container via ```sx_api_issu.py``` from sx_examples or some custom script  (```sx_api_issu_end_set()```)
@@ -152,7 +151,14 @@ So the downtime will depend on how quickly routes are received by BGP.
 
 ## <b> Who should set ```WARM_RESTART_TABLE```? CLI? User? </b>
 
-This is not clear from 'System-wide Warmreboot' doc
+This is not clear from 'System-wide Warmreboot' doc. Need to clarify
+
+## <b> Is BGP/TeamD dockers Warm restart needed?
+
+The fpmsyncd will expect that there is stale route data in APPL DB to do reconcilation logic after gr timer.
+Since APPL DB will be empty on start, do we need to start bgp docker in warm way, except only graceful restart.
+
+TeamD - unknown
 
 # Approach 2 (more like WB flow)
 
