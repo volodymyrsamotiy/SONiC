@@ -172,7 +172,7 @@ From https://github.com/Azure/SONiC/blob/master/doc/warm-reboot/SONiC_Warmboot.m
 
 If we can reuse this approach in different way: e.g apply all configuration that is in temp view instead of computing delta ?
 
-It could solve two issues:
+It could solve three issues:
   - We have exact moment of time when ISSU end can be called
   - This will insert all routes in ASIC as before shutdown, so we will not wait untill BGP routes are advertised
   - All other dockers should restart in warm way. Only syncd handles it specificaly.
