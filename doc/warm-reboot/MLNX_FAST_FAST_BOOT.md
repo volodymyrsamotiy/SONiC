@@ -160,6 +160,8 @@ Since APPL DB will be empty on start, do we need to start bgp docker in warm way
 
 TeamD - unknown
 
+## <b> How to check that there is downgrade to SDK which not support ISSU? </b>
+
 # Approach 2 (more like WB flow)
 
 Assume O/A will restart in Warm way. It will restore APP DB (includes routes, neighbors, etc), push config down to syncd. Syncd is in INIT_VIEW mode and will prorcess events from SWSS in different way by marking ASIC DB entries as TEMP_ (no configuration applied to HW). 
