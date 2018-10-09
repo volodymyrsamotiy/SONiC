@@ -153,7 +153,7 @@ So the downtime will depend on how quickly routes are received by BGP.
 
 This is not clear from 'System-wide Warmreboot' doc. Need to clarify
 
-## <b> Is BGP/TeamD dockers Warm restart needed?
+## <b> Is BGP/TeamD dockers Warm restart needed? </b>
 
 The fpmsyncd will expect that there is stale route data in APPL DB to do reconcilation logic after gr timer.
 Since APPL DB will be empty on start, do we need to start bgp docker in warm way, except only graceful restart.
