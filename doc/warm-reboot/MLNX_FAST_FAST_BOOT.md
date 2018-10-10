@@ -107,7 +107,7 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
       <br>
         ```Fast fast reboot is not supported on "ISSU disabled device"```
      
-    - Check if FFB is supported between two SDK version - call the script ```issu.py --check``` inside ```syncd```
+    - Check if FFB is supported between two SDK version - call the script ```issu.py --check``` inside ```syncd``` and pass current SDK version and next SDK version as parameters
       <br>
       Example error message:
       <br>
