@@ -129,9 +129,7 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
     
   - Dump ARP/FDB entries from APP DB - existing step in FB
   
-  - Mark reboot cause file - existing step in FB
-    - Similar to FB:
-      ```User issued 'fast-fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
+  - Dump WARM_RESTART table
       
   - bgp, teamd dockers config restart in regular WARM SONiC way via State DB key
     <br>
@@ -146,12 +144,18 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
     
   - execute ```docker kill``` on every other container (swss, syncd, pmon, snmp, lldp)
   
+  - Mark reboot cause file - existing step in FB
+    - Similar to FB:
+      ```User issued 'fast-fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
+  
   - BOOT_OPTIONS += 'fast-fast-reboot' (instead of 'fast-reboot' in FB case)
   
   - kexec $BOOT_OPTIONS
 
 ## 2.3 Startup flow
 Similar to fast-reboot:
+  - database
+    - Restore WARM_RESTART table
   - Start services
     - swss started normaly in non warm way
     
