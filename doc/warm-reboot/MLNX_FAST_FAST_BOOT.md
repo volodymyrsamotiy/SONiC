@@ -172,8 +172,18 @@ Similar to fast-reboot:
 
 The possible W/A can check when the default route was added?
 
-## <b> Can we use INIT/APPLY view in syncd?
- 
- Can apply view can be considered as ISSU end?
+## <b> Can we addapt SONiC warm reboot flow by using INIT/APPLY view approach inside syncd? </b>
 
+Assume swss will restart in Warm way.
 
+The APP DB is restored and orchagent will process the APP DB and pushes configuration to syncd.
+
+Syncd is in INIT_VIEW mode and will construct a temp view (no configuration applied on HW).
+
+Orchagent notifies syncd to do APPLY_VIEW. syncd will do comparison logic between current (the view discovered from current ASIC state)  and temporary view and push the delta config to the HW.
+
+If we can reuse this approach in different way - apply all configuration that is in temp view instead of computing delta, so we can restore the pre-reboot state
+
+It could solve 1st issue, beacause there is exact moment of time when exact pre-shutdown configuration is applied.
+
+All other dockers should restart in warm way. Only syncd handles it specificaly.
