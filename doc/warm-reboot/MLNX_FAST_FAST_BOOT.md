@@ -129,7 +129,7 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
     
   - Dump ARP/FDB entries from APP DB - existing step in FB
   
-  - Dump WARM_RESTART table
+  - Dump WARM_RESTART table in config DB and state DB
       
   - bgp, teamd dockers config restart in regular WARM SONiC way via State DB key
     <br>
@@ -155,7 +155,7 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
 ## 2.3 Startup flow
 Similar to fast-reboot:
   - database
-    - Restore WARM_RESTART table
+    - Restore WARM_RESTART table in config DB and state DB
   - Start services
     - swss started normaly in non warm way
     
