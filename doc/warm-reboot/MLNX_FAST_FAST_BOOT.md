@@ -172,6 +172,8 @@ Similar to fast-reboot:
 
 The possible W/A can check when the default route was added?
 
+## <b> Who should set ```WARM_RESTART_TABLE```? CLI? User? </b>
+
 ## <b> Can we addapt SONiC warm reboot flow by using INIT/APPLY view approach inside syncd? </b>
 
 Assume swss will restart in Warm way.
