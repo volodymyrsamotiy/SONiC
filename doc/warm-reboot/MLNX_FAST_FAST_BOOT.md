@@ -129,7 +129,7 @@ We will try to rereuse a part of it for BGP/TeamD dockers warm reboot as much as
     <br>
     ```WARM_RESTART_TABLE|teamd```
     <br>
-    stop bgp and teamd services via systemctl
+    stop bgp and teamd services
     <br>
     
     According to system level WB design doc bgp will enable GR, teamd - just kill
