@@ -113,8 +113,12 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
       <br>
         ```Fast fast reboot upgrade to SDK $VERSION_NEW from SDK $VERSION_OLD is not supported```
       <br>
+      SDK version can be stored inside a file generated at image build time, e.g ```/etc/mlnx/sdk_version```
+      <br>
       
       <b>NOTE:</b> This should be a very rare case. We do not plan to break the upgrade between versions, but just to have an additional check here.
+
+    - Unset ```WARM_RESTART:system````
       
     - Burn new FW if new FW is available in next boot SONiC image: 
       <br>
@@ -133,9 +137,10 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
     ```WARM_RESTART_TABLE|bgp```
     <br>
     ```WARM_RESTART_TABLE|teamd```
-    
-  - stop bgp and teamd services via systemctl
     <br>
+    stop bgp and teamd services via systemctl
+    <br>
+    
     According to system level WB design doc bgp will enable GR, teamd - just kill
     
   - execute ```docker kill``` on every other container (swss, syncd, pmon, snmp, lldp)
@@ -170,32 +175,6 @@ A process inside syncd can be started in case of 'fast-fast-boot' that will wait
 
 ## <b> When to execute ISSU end? </b>
 
-The possible W/A can check when the default route was added?
+The possible W/A can check when the default route was added? 
 
-## <b> Who should set ```WARM_RESTART_TABLE```? CLI? User? </b>
 
-This is not clear from 'System-wide Warmreboot' doc. Need to clarify
-
-## <b> Is BGP/TeamD dockers Warm restart needed? </b>
-
-The fpmsyncd will expect that there is stale route data in APPL DB to do reconcilation logic after gr timer.
-Since APPL DB will be empty on start, do we need to start bgp docker in warm way? Except graceful restart is needed.
-
-TeamD - unknown
-
-# 
-
-Assume O/A will restart in Warm way. It will restore APP DB (includes routes, neighbors, etc), push config down to syncd. Syncd is in INIT_VIEW mode and will prorcess events from SWSS in different way by marking ASIC DB entries as TEMP_ (no configuration applied to HW). 
-
-O/A notifies syncd to do APPLY_VIEW. syncd will do comparison logic between current (the view discovered from current ASIC state) view and temporary view and push the delta config to the HW.
-
-From https://github.com/Azure/SONiC/blob/master/doc/warm-reboot/SONiC_Warmboot.md#the-existing-syncd-initapply-view-framework
-
-"Essentially there will be two views created for warm restart. The current view represents the ASIC state before shutdown, temp view represents the new intended ASIC state after restart."
-
-If we can reuse this approach in different way: e.g apply all configuration that is in temp view instead of computing delta ?
-
-It could solve three issues:
-  - We have exact moment of time when ISSU end can be called
-  - This will insert all routes in ASIC as before shutdown, so we will not wait untill BGP routes are advertised
-  - All other dockers should restart in warm way. Only syncd handles it specificaly.
