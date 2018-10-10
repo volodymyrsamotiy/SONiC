@@ -128,7 +128,7 @@ Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE`
     - Similar to FB:
       ```User issued 'fast-fast-reboot' command [User: ${REBOOT_USER}, Time: ${REBOOT_TIME}]```
       
-  - bgp, teamd dockers config restart in regular WARM SONiC way via CONFIG DB key
+  - bgp, teamd dockers config restart in regular WARM SONiC way via State DB key
     <br>
     ```WARM_RESTART_TABLE|bgp```
     <br>
