@@ -56,6 +56,7 @@ Should invoke warm reboot flow
 ## Limitations
 * No change in port mapping configuration (correct SDK/HW behaviour is NOT guaranteed otherwise)
 * In "ISSU enabled" mode half of resources (RIFs, Routes, ACLs, etc.) are available
+* The solution is tailored for MSFT T0 configuration
 
 
 # 2 Components changes
