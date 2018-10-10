@@ -123,7 +123,7 @@ We will try to rereuse a part of it for BGP/TeamD dockers warm reboot as much as
     
   - Dump ARP/FDB entries from APP DB - existing step in FB
       
-  - bgp, teamd dockers config restart in regular WARM SONiC way via State DB key
+  - bgp, teamd dockers config restart in regular WARM SONiC way via config DB key
     <br>
     ```WARM_RESTART_TABLE|bgp```
     <br>
