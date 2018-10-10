@@ -168,10 +168,6 @@ Similar to fast-reboot:
     
   - END
 
-## 2.4 As a W/A for ISSU end call
-
-A process inside syncd can be started in case of 'fast-fast-boot' that will wait for $TIMEOUT sec and call ISSU end by executing ```sx_api_issu.py end```
-
 # Open issues
 
 ## <b> When to execute ISSU end? </b>
