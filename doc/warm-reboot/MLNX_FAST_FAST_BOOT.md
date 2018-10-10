@@ -80,11 +80,11 @@ The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' from 
 
 ## 2.4 Shutdown flow
 
-The flow descibed on 'System-wide Warmboot' is describing the flow in general right now.
+'System-wide Warmboot' design document is describing the flow in general right now.
 
 Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE```. 
 
-We will try to rereuse a part of it for BGP/TeamD dockers warm reboot as much as possible but the below flow of ```mlnx-ffb.sh``` will describe all that should be done.
+We will try to rereuse a part of system warm reboot script for BGP/TeamD dockers warm reboot as much as possible but the below flow of ```mlnx-ffb.sh``` will describe all that should be done.
 
 - User issues Warm reboot CLI:
   - If Mellanox platform then invoke ```mlnx-ffb.sh```
