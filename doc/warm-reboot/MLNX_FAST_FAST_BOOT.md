@@ -162,7 +162,7 @@ Similar to fast-reboot:
   - Orchagent starts configuring HW
   
   - When configuration is done:
-    - Execute ISSU end script ```issu.py --end``` inside ```syncd```
+    - set ```SAI_SWITCH_ATTR_FAST_API_ENABLE``` to ```false```, so SAI will call ISSU end API
     
   - END
 
