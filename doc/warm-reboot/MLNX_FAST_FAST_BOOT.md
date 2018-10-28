@@ -71,12 +71,18 @@ The same approach uses MLNX SDK Sniffer configuration.
 
 * The syncd daemon should handle new startup command line flag ```-t fast-fast```.
 * Syncd should pass to SAI ```SAI_KEY_BOOT_TYPE = 1```, so SAI will initialize SDK in FFB way.
-* Also, unlike WB, syncd should NOT perform WARM start comparison logic (<b>Q</b>:).
+* Also, unlike WB, syncd should NOT perform WARM start comparison logic.
 
 
 ## 2.3 syncd_init_common.sh changes
 
 The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' from ```/proc/cmdline``` and pass option ```-t fast-fast``` to syncd start options.
+
+## 2.4 mlnx-ffb.sh
+
+The new script will live in /usr/bin/ and will contain 2 check functions to check whether ISSU is enabled on a device and SDK supports ISSU upgrade.
+
+These functions will be used by warm-reboot script
 
 ## 2.4 Shutdown flow
 
@@ -84,15 +90,15 @@ The syncd_init_common.sh should get that reboot cause was 'fast-fast-boot' from 
 
 Specificaly, it is not clear who will do change config in ```WARM_RESTART_TABLE```. 
 
-We will try to rereuse a part of system warm reboot script for BGP/TeamD dockers warm reboot as much as possible but the below flow of ```mlnx-ffb.sh``` will describe all that should be done.
-
 - User issues Warm reboot CLI:
-  - If Mellanox platform then invoke ```mlnx-ffb.sh```
+  - If Mellanox platform then perform FFB
   - Else - do regular SONiC warm reboot flow for the rest of platforms
   
 ### 3.1 Mellanox fast fast reboot flow 
-#### ```mlnx-ffb.sh```
+#### ```warm-reboot```
   - MLNX specific flow:
+  
+    - source ```/usr/bin/mlnx-ffb.sh``` script
   
     - Check if FFB is supported by HWSKU, if not - reject the command
       <br>
