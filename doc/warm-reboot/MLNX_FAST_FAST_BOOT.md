@@ -4,9 +4,10 @@
 ## Table of Contents
 ## List of Tables
 ###### Revision
-| Rev |     Date    |       Author          | Change Description                |
-|:---:|:-----------:|:---------------------:|-----------------------------------|
-| 0.1 |             | Stepan Blyshchak      | Initial version                   |
+| Rev |     Date    |       Author          | Change Description                 |
+|:---:|:-----------:|:---------------------:|------------------------------------|
+| 0.1 |             | Stepan Blyshchak      | Initial version                    |
+| 0.2 |             | Volodymyr Samotiy     | Add flow for FFB Config-Done event |
 ## About this Manual
 This document provides general information about the MLNX FFB feature implementation in SONiC.
 ## Scope
@@ -171,6 +172,9 @@ Similar to fast-reboot:
     - set ```SAI_SWITCH_ATTR_FAST_API_ENABLE``` to ```false```, so SAI will call ISSU end API
     
   - END
+
+### 3.2.1 Config-Done flow
+![](https://github.com/volodymyrsamotiy/SONiC/raw/ffb/images/warm-reboot/ffb_config_done.png)
 
 # Open issues
 
